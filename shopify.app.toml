@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "59e89171dc3c18dd338da75a1cb4ed19"
-application_url = "https://shopify.dev/apps/default-app-home"
+application_url = "https://artiksha-reviews.onrender.com"
 embedded = true
 name = "artiksha-reviews"
 
@@ -33,12 +33,17 @@ api_version = "2026-10"
 scopes = "read_products"
 
 [auth]
-redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]
+redirect_urls = [
+  "https://artiksha-reviews.onrender.com/auth/callback",
+  "https://artiksha-reviews.onrender.com/auth/shopify/callback",
+  "https://artiksha-reviews.onrender.com/api/auth",
+  "https://artiksha-reviews.onrender.com/api/auth/callback"
+]
 
 # Storefront widget reaches the app here: /apps/artiksha-reviews/reviews -> <app>/proxy/reviews
 # `url` is auto-synced to the real app URL by `shopify app dev` (automatically_update_urls_on_dev).
 [app_proxy]
-url = "https://shopify.dev/apps/default-app-home/proxy"
+url = "https://artiksha-reviews.onrender.com/proxy"
 subpath = "artiksha-reviews"
 prefix = "apps"
 
