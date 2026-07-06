@@ -53,6 +53,14 @@
         <textarea name="body" required rows="4" maxlength="5000"></textarea>
       </label>
 
+      {%- if block.settings.allow_photos -%}
+        <label class="akr-field"><span>Add photos (optional)</span>
+          <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple data-akr-files>
+          <small class="akr-hint">Up to 4 photos · 5&nbsp;MB each · JPG, PNG or WebP</small>
+        </label>
+        <div class="akr-previews" data-akr-previews></div>
+      {%- endif -%}
+
       <div class="akr-form-actions">
         <button type="submit" class="akr-submit">Submit review</button>
         <button type="button" class="akr-cancel" data-akr-cancel>Cancel</button>
@@ -72,6 +80,7 @@
   "settings": [
     { "type": "text", "id": "heading", "label": "Heading", "default": "Customer Reviews" },
     { "type": "checkbox", "id": "allow_submit", "label": "Let customers write reviews", "default": true },
+    { "type": "checkbox", "id": "allow_photos", "label": "Let customers add photos", "default": true },
     { "type": "text", "id": "write_label", "label": "Write-review button text", "default": "Write a review" },
     { "type": "color", "id": "accent_color", "label": "Accent (stars) color", "default": "#b88a3e" },
     {

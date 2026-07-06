@@ -48,6 +48,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       body: r.body,
       reply: r.reply,
       verified: r.verified,
+      photoUrls: (() => {
+        try {
+          const v = JSON.parse(r.photoUrls || "[]");
+          return Array.isArray(v) ? (v as string[]) : [];
+        } catch {
+          return [] as string[];
+        }
+      })(),
       createdAt: r.createdAt.toISOString(),
     })),
     byStatus,
@@ -185,6 +193,20 @@ export default function ReviewsAdmin() {
                       <Text as="span" tone="subdued">
                         {r.body.length > 180 ? r.body.slice(0, 180) + "…" : r.body}
                       </Text>
+                      {r.photoUrls.length ? (
+                        <InlineStack gap="100">
+                          {r.photoUrls.slice(0, 6).map((u) => (
+                            <img
+                              key={u}
+                              src={u}
+                              alt=""
+                              width={44}
+                              height={44}
+                              style={{ objectFit: "cover", borderRadius: 6 }}
+                            />
+                          ))}
+                        </InlineStack>
+                      ) : null}
                       {r.reply ? (
                         <Text as="span" tone="subdued">
                           ↳ Reply: {r.reply}

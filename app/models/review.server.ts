@@ -161,3 +161,35 @@ export async function getSettings(shop: string) {
     create: { shop },
   });
 }
+
+// --- Review image uploads (stored in-DB, served by the app's /image/:id route) ---
+export const MAX_IMAGES = 4;
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB each
+export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+/** Persist uploaded photos for a review and set its photoUrls to app-served absolute URLs. */
+export async function attachReviewImages(
+  shop: string,
+  reviewId: string,
+  images: { contentType: string; data: Uint8Array<ArrayBuffer> }[],
+): Promise<string[]> {
+  if (!images.length) return [];
+  const base = (process.env.SHOPIFY_APP_URL || "").replace(/\/$/, "");
+  const urls: string[] = [];
+  for (const img of images.slice(0, MAX_IMAGES)) {
+    const row = await db.reviewImage.create({
+      data: { shop, reviewId, contentType: img.contentType, data: img.data },
+    });
+    urls.push(`${base}/image/${row.id}`);
+  }
+  await db.review.update({ where: { id: reviewId }, data: { photoUrls: JSON.stringify(urls) } });
+  return urls;
+}
+
+/** Fetch one image's bytes for the public /image/:id route. */
+export async function getReviewImage(id: string) {
+  return db.reviewImage.findUnique({
+    where: { id },
+    select: { contentType: true, data: true },
+  });
+}

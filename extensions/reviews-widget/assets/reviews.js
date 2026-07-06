@@ -116,6 +116,24 @@
         });
       });
 
+      // Photo picker: show thumbnail previews of chosen files.
+      var fileInput = form.querySelector("[data-akr-files]");
+      var previews = form.querySelector("[data-akr-previews]");
+      if (fileInput && previews) {
+        fileInput.addEventListener("change", function () {
+          previews.innerHTML = "";
+          var files = Array.prototype.slice.call(fileInput.files || []).slice(0, 4);
+          files.forEach(function (f) {
+            if (!/^image\//.test(f.type)) return;
+            var img = document.createElement("img");
+            img.className = "akr-preview";
+            img.src = URL.createObjectURL(f);
+            img.onload = function () { URL.revokeObjectURL(img.src); };
+            previews.appendChild(img);
+          });
+        });
+      }
+
       form.addEventListener("submit", function (e) {
         e.preventDefault();
         msg.textContent = "";
@@ -126,13 +144,13 @@
         }
         var submitBtn = form.querySelector(".akr-submit");
         submitBtn.disabled = true;
-        var payload = {};
-        new FormData(form).forEach(function (v, k) { payload[k] = v; });
+        // Send as multipart FormData so photo files upload; browser sets the boundary header.
+        var fd = new FormData(form);
 
         fetch(proxy, {
           method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify(payload),
+          headers: { Accept: "application/json" },
+          body: fd,
         })
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {

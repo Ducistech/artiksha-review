@@ -59,9 +59,24 @@ model Review {
   updatedAt     DateTime @updatedAt
   reviewedAt    DateTime?                          // when a customer/Google review was originally written
 
+  images        ReviewImage[]
+
   @@index([shop, status])
   @@index([shop, productId, status])
   @@unique([shop, source, externalId])             // idempotent Google import; null externalId allowed repeatedly on SQLite
+}
+
+// --- Customer-uploaded review photo, stored in-DB and served by the app (no extra storage service). ---
+model ReviewImage {
+  id          String   @id @default(cuid())
+  shop        String
+  reviewId    String
+  review      Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  contentType String                               // "image/jpeg" | "image/png" | "image/webp"
+  data        Bytes                                // raw image bytes (bytea)
+  createdAt   DateTime @default(now())
+
+  @@index([reviewId])
 }
 
 // --- Google Business Profile OAuth connection + selected location, one row per shop. ---

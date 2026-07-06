@@ -13,6 +13,10 @@ import {
   createCustomerReview,
   getPublishedReviews,
   getSettings,
+  attachReviewImages,
+  MAX_IMAGES,
+  MAX_IMAGE_BYTES,
+  ALLOWED_IMAGE_TYPES,
 } from "../models/review.server";
 
 function json(data: unknown, status = 200) {
@@ -40,14 +44,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (!session) return json({ error: "no_session" }, 401);
   if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
-  // Accept both JSON and urlencoded form posts.
+  // Accept JSON, urlencoded, and multipart (with photo uploads).
   let payload: Record<string, unknown> = {};
+  const imageFiles: File[] = [];
   const ctype = request.headers.get("content-type") || "";
   if (ctype.includes("application/json")) {
     payload = (await request.json().catch(() => ({}))) as Record<string, unknown>;
   } else {
     const form = await request.formData();
-    payload = Object.fromEntries(form.entries());
+    for (const [k, v] of form.entries()) {
+      if (v instanceof File) {
+        if (k === "images" && v.size > 0) imageFiles.push(v);
+      } else {
+        payload[k] = v;
+      }
+    }
   }
 
   const productId = String(payload.productId || "").trim();
@@ -66,6 +77,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (body.length < 5) errors.body = "Please write a short review";
   if (!(rating >= 1 && rating <= 5)) errors.rating = "Please pick a star rating";
   if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) errors.email = "Invalid email";
+
+  // Validate uploaded photos (type + size + count).
+  const accepted = imageFiles.slice(0, MAX_IMAGES);
+  for (const f of accepted) {
+    if (!ALLOWED_IMAGE_TYPES.includes(f.type)) errors.images = "Photos must be JPG, PNG, or WebP";
+    else if (f.size > MAX_IMAGE_BYTES) errors.images = "Each photo must be under 5 MB";
+  }
   if (Object.keys(errors).length) return json({ ok: false, errors }, 422);
 
   if (honeypot) return json({ ok: true, moderated: true }); // pretend success for bots
@@ -73,7 +91,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const settings = await getSettings(session.shop);
   const status = settings.autoPublish ? "published" : "pending";
 
-  await createCustomerReview({
+  const review = await createCustomerReview({
     shop: session.shop,
     productId,
     productHandle,
@@ -84,6 +102,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     body,
     status,
   });
+
+  if (accepted.length) {
+    const images = await Promise.all(
+      accepted.map(async (f) => ({
+        contentType: f.type,
+        data: new Uint8Array(await f.arrayBuffer()),
+      })),
+    );
+    await attachReviewImages(session.shop, review.id, images);
+  }
 
   return json({
     ok: true,

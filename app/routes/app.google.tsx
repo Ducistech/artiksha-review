@@ -100,6 +100,21 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<ActionRes
   return { ok: false, message: null, error: "unknown_intent" };
 };
 
+// Google gates the Business Profile APIs behind an access request; until it's granted
+// the API returns 429 (quota ~0) or 403 PERMISSION_DENIED / SERVICE_DISABLED. Detect
+// that so we can show a calm "approval pending" note instead of a scary raw error.
+function isApprovalPending(msg?: string | null): boolean {
+  if (!msg) return false;
+  return /\b429\b|quota exceeded|\b403\b|permission_denied|has not been used|serviceusage|accessnotconfigured|service_disabled/i.test(
+    msg,
+  );
+}
+
+const APPROVAL_MESSAGE =
+  "Google is still enabling Business Profile API access for your project. This is a one-time " +
+  "approval that can take a few days after you submit Google's API access request form. Once it's " +
+  "granted, just click Sync again — you won't need to reconnect.";
+
 export default function GoogleAdmin() {
   const data = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
@@ -121,7 +136,13 @@ export default function GoogleAdmin() {
           <Banner tone="success">{actionData.message}</Banner>
         ) : null}
         {actionData && !actionData.ok ? (
-          <Banner tone="critical">{actionData.error}</Banner>
+          isApprovalPending(actionData.error) ? (
+            <Banner tone="info" title="Google approval pending">
+              <p>{APPROVAL_MESSAGE}</p>
+            </Banner>
+          ) : (
+            <Banner tone="critical">{actionData.error}</Banner>
+          )
         ) : null}
 
         {!data.hasCredentials ? (
@@ -171,7 +192,13 @@ export default function GoogleAdmin() {
                     : "Not synced yet"}
                 </Text>
                 {data.conn.lastSyncError ? (
-                  <Banner tone="critical">Last sync error: {data.conn.lastSyncError}</Banner>
+                  isApprovalPending(data.conn.lastSyncError) ? (
+                    <Banner tone="info" title="Google approval pending">
+                      <p>{APPROVAL_MESSAGE}</p>
+                    </Banner>
+                  ) : (
+                    <Banner tone="critical">Last sync error: {data.conn.lastSyncError}</Banner>
+                  )
                 ) : null}
                 <InlineStack gap="200">
                   <Button variant="primary" loading={busy} onClick={() => post({ intent: "sync" })}>
@@ -186,9 +213,13 @@ export default function GoogleAdmin() {
               <BlockStack gap="300">
                 <Text as="p">Choose which business location to import reviews from:</Text>
                 {data.listError ? (
-                  <Banner tone="critical">
-                    Couldn't list locations: {data.listError}
-                  </Banner>
+                  isApprovalPending(data.listError) ? (
+                    <Banner tone="info" title="Google approval pending">
+                      <p>{APPROVAL_MESSAGE}</p>
+                    </Banner>
+                  ) : (
+                    <Banner tone="critical">Couldn't list locations: {data.listError}</Banner>
+                  )
                 ) : data.locations.length === 0 ? (
                   <Text as="p" tone="subdued">
                     No manageable locations found on this Google account.
