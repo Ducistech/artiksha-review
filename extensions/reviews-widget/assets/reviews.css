@@ -1,0 +1,49 @@
+.artiksha-reviews {
+  --akr-accent: #b88a3e;
+  max-width: 1100px;
+  margin: 28px auto;
+  padding: 0 4px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.artiksha-reviews * { box-sizing: border-box; }
+.akr-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid rgba(0,0,0,.1); padding-bottom: 10px; margin-bottom: 14px; }
+.akr-title { font-size: 20px; margin: 0; }
+.akr-summary { display: inline-flex; align-items: center; gap: 8px; }
+.akr-stars { color: var(--akr-accent); letter-spacing: 1px; }
+.akr-avg { font-weight: 700; }
+.akr-count, .akr-muted, .akr-date { color: #767676; font-size: 13.5px; }
+
+.akr-item { padding: 16px 0; border-bottom: 1px solid rgba(0,0,0,.07); }
+.akr-item-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.akr-author { font-weight: 600; }
+.akr-item-title { margin: 8px 0 2px; font-size: 15.5px; }
+.akr-item-body { margin: 4px 0 0; white-space: pre-wrap; }
+.akr-badge { font-size: 11.5px; padding: 2px 7px; border-radius: 999px; font-weight: 600; }
+.akr-badge--google { background: #f1f3f4; color: #444; }
+.akr-badge--verified { background: #e7f4ea; color: #1a7f37; }
+.akr-photos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.akr-photo { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; }
+.akr-reply { margin-top: 8px; padding: 8px 12px; background: #faf7f2; border-radius: 6px; font-size: 14px; }
+
+.akr-write-btn, .akr-submit, .akr-cancel {
+  cursor: pointer; border-radius: 8px; padding: 9px 16px; font-size: 14px; border: 1px solid var(--akr-accent);
+}
+.akr-write-btn { margin-top: 16px; background: transparent; color: var(--akr-accent); font-weight: 600; }
+.akr-submit { background: var(--akr-accent); color: #fff; border-color: var(--akr-accent); }
+.akr-cancel { background: transparent; border-color: rgba(0,0,0,.2); color: #444; }
+
+.akr-form { margin-top: 16px; max-width: 520px; display: grid; gap: 12px; }
+.akr-field { display: grid; gap: 4px; }
+.akr-field > span { font-size: 13.5px; font-weight: 600; }
+.akr-field input, .akr-field textarea {
+  width: 100%; padding: 9px 10px; border: 1px solid rgba(0,0,0,.25); border-radius: 8px; font: inherit;
+}
+.akr-hp { position: absolute !important; left: -9999px !important; height: 0; width: 0; opacity: 0; }
+.akr-stars-input { display: inline-flex; gap: 2px; }
+.akr-star { background: none; border: none; font-size: 26px; line-height: 1; cursor: pointer; color: #ccc; padding: 0 2px; }
+.akr-star.is-on { color: var(--akr-accent); }
+.akr-form-actions { display: flex; gap: 10px; }
+.akr-form-msg { margin: 2px 0 0; font-size: 14px; }
+.akr-form-msg.is-error { color: #b00020; }
+.akr-form-msg.is-ok { color: #1a7f37; }

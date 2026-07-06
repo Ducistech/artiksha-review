@@ -1,0 +1,86 @@
+{%- comment -%}
+  Artiksha Reviews — product reviews block (app block).
+  Add on a product page: Customize → product template → Add block → Apps → Artiksha Reviews.
+  Fetches published reviews from the app proxy and renders a summary, list, and submit form.
+{%- endcomment -%}
+
+<div
+  class="artiksha-reviews"
+  id="artiksha-reviews-{{ block.id }}"
+  data-product-id="{{ product.id }}"
+  data-product-handle="{{ product.handle }}"
+  data-proxy="{{ block.settings.proxy_path | default: '/apps/artiksha-reviews/reviews' }}"
+  data-accent="{{ block.settings.accent_color }}"
+  data-allow-submit="{{ block.settings.allow_submit }}"
+  style="--akr-accent: {{ block.settings.accent_color }};"
+>
+  <div class="akr-head">
+    <h2 class="akr-title">{{ block.settings.heading | escape }}</h2>
+    <div class="akr-summary" data-akr-summary aria-live="polite"></div>
+  </div>
+  <div class="akr-list" data-akr-list>
+    <p class="akr-muted">Loading reviews…</p>
+  </div>
+
+  {%- if block.settings.allow_submit -%}
+    <button type="button" class="akr-write-btn" data-akr-open-form>{{ block.settings.write_label | escape }}</button>
+    <form class="akr-form" data-akr-form hidden>
+      <input type="hidden" name="productId" value="{{ product.id }}">
+      <input type="hidden" name="productHandle" value="{{ product.handle }}">
+      {%- comment -%} honeypot — hidden from humans, bots fill it {%- endcomment -%}
+      <input type="text" name="website" tabindex="-1" autocomplete="off" class="akr-hp" aria-hidden="true">
+
+      <label class="akr-field">
+        <span>Your rating</span>
+        <span class="akr-stars-input" data-akr-stars>
+          {%- for i in (1..5) -%}
+            <button type="button" class="akr-star" data-val="{{ i }}" aria-label="{{ i }} star">★</button>
+          {%- endfor -%}
+        </span>
+        <input type="hidden" name="rating" value="">
+      </label>
+
+      <label class="akr-field"><span>Name</span>
+        <input type="text" name="name" required maxlength="120">
+      </label>
+      <label class="akr-field"><span>Email (not shown publicly)</span>
+        <input type="email" name="email" maxlength="200">
+      </label>
+      <label class="akr-field"><span>Title</span>
+        <input type="text" name="title" maxlength="160">
+      </label>
+      <label class="akr-field"><span>Your review</span>
+        <textarea name="body" required rows="4" maxlength="5000"></textarea>
+      </label>
+
+      <div class="akr-form-actions">
+        <button type="submit" class="akr-submit">Submit review</button>
+        <button type="button" class="akr-cancel" data-akr-cancel>Cancel</button>
+      </div>
+      <p class="akr-form-msg" data-akr-msg role="status"></p>
+    </form>
+  {%- endif -%}
+</div>
+
+{{ 'reviews.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'reviews.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Artiksha Reviews",
+  "target": "section",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Customer Reviews" },
+    { "type": "checkbox", "id": "allow_submit", "label": "Let customers write reviews", "default": true },
+    { "type": "text", "id": "write_label", "label": "Write-review button text", "default": "Write a review" },
+    { "type": "color", "id": "accent_color", "label": "Accent (stars) color", "default": "#b88a3e" },
+    {
+      "type": "text",
+      "id": "proxy_path",
+      "label": "App proxy path",
+      "info": "Must match the App proxy configured for this app.",
+      "default": "/apps/artiksha-reviews/reviews"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,46 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "59e89171dc3c18dd338da75a1cb4ed19"
+application_url = "https://shopify.dev/apps/default-app-home"
+embedded = true
+name = "artiksha-reviews"
+
+[webhooks]
+api_version = "2026-10"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = ["app/uninstalled"]
+
+  [[webhooks.subscriptions]]
+  topics = ["app/scopes_update"]
+  uri = "/webhooks/app/scopes_update"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/customers/data_request"
+  compliance_topics = ["customers/data_request"]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/customers/redact"
+  compliance_topics = ["customers/redact"]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/shop/redact"
+  compliance_topics = ["shop/redact"]
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_products"
+
+[auth]
+redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]
+
+# Storefront widget reaches the app here: /apps/artiksha-reviews/reviews -> <app>/proxy/reviews
+# `url` is auto-synced to the real app URL by `shopify app dev` (automatically_update_urls_on_dev).
+[app_proxy]
+url = "https://shopify.dev/apps/default-app-home/proxy"
+subpath = "artiksha-reviews"
+prefix = "apps"
+
+[build]
+automatically_update_urls_on_dev = true

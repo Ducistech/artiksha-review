@@ -1,0 +1,92 @@
+// Prisma schema — Artiksha Reviews app
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Shopify session storage (required by @shopify/shopify-app-session-storage-prisma) ---
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+// --- A product review: either customer-submitted on the storefront, or imported from Google. ---
+model Review {
+  id            String   @id @default(cuid())
+  shop          String                            // owning store domain
+  source        String   @default("customer")     // "customer" | "google"
+  status        String   @default("pending")      // "pending" | "published" | "spam" | "hidden"
+
+  // Product association (customer reviews target a specific product; Google reviews are store-wide -> productId null)
+  productId     String?                            // numeric Shopify product id, e.g. "7842069545034"
+  productHandle String?
+
+  authorName    String
+  authorEmail   String?                            // customer-submitted only; PII, never shown on storefront
+  rating        Int                                // 1..5
+  title         String?
+  body          String
+
+  // Provenance for Google-imported reviews (used for idempotent upserts + de-dup)
+  externalId    String?                            // Google review name/id — unique per shop+source when present
+  reply         String?                            // merchant reply (Google or manual)
+
+  verified      Boolean  @default(false)           // customer review matched to a real paid order
+  photoUrls     String?                            // JSON array of image URLs (customer uploads / Google photos)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  reviewedAt    DateTime?                          // when a customer/Google review was originally written
+
+  @@index([shop, status])
+  @@index([shop, productId, status])
+  @@unique([shop, source, externalId])             // idempotent Google import; null externalId allowed repeatedly on SQLite
+}
+
+// --- Google Business Profile OAuth connection + selected location, one row per shop. ---
+model GoogleConnection {
+  id            String    @id @default(cuid())
+  shop          String    @unique
+  accessToken   String
+  refreshToken  String
+  tokenExpires  DateTime?
+  accountName   String?                            // "accounts/123"
+  locationName  String?                            // "locations/456" — the specific business listing
+  locationTitle String?                            // human label of the location
+  lastSyncedAt  DateTime?
+  lastSyncError String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// --- Per-shop widget/config settings. ---
+model ShopSetting {
+  id                 String   @id @default(cuid())
+  shop               String   @unique
+  autoPublish        Boolean  @default(false)      // auto-publish new customer reviews (default: moderate first)
+  requireVerified    Boolean  @default(false)      // only accept reviews tied to a real order
+  showGoogleReviews  Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
